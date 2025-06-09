@@ -6,26 +6,6 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 
 class CustomUserSerializer(serializers.ModelSerializer):
-    """
-    Serializer del modelo CustomUser para usuarios estándar (solo lectura).
-
-    Este serializer transforma instancias del modelo CustomUser en representaciones JSON
-    para ser mostradas en el frontend. Está diseñado para la visualización pública
-    o estándar de la información del usuario, excluyendo datos sensibles como la contraseña.
-
-    Campos:
-       id: ID único del usuario.
-       username: Nombre de usuario único para inicio de sesión.
-       email: Dirección de correo electrónico del usuario.
-       name: Nombre de pila del usuario.
-       surname: Primer apellido del usuario.
-       second_surname: Segundo apellido del usuario.
-       biography: Breve descripción o biografía del usuario.
-       created_at: Fecha y hora de creación del registro del usuario.
-
-    Auth:
-		Saturnino Mendez
-    """
 
     class Meta:
         model = CustomUser
@@ -43,31 +23,6 @@ class CustomUserSerializer(serializers.ModelSerializer):
 
 
 class CustomUserAdminSerializer(serializers.ModelSerializer):
-    """
-    Serializer del modelo CustomUser para la visualización y gestión por parte de usuarios `is_staff`.
-
-    Este serializer transforma instancias del modelo CustomUser en representaciones JSON
-    y viceversa, permitiendo a los administradores ver y potencialmente modificar todos los
-    campos del usuario, excepto los campos de solo lectura definidos.
-    Aunque incluye 'password' en '__all__', este campo no se serializará en la salida
-    debido a que Django ya lo gestiona hasheado internamente y no es un campo de modelo
-    directamente legible en texto plano. Se asume que la modificación de la contraseña
-    se realizará a través de un serializer de actualización específico.
-
-    Campos:
-        id: ID único del usuario.
-        username: Nombre de usuario.
-        email: Email del usuario.
-        password: Contraseña del usuario (no es un campo de lectura directa, solo para operaciones internas).
-        name: Nombre de pila del usuario.
-        surname: Primer apellido del usuario.
-        second_surname: Segundo apellido del usuario.
-        biography: Biografía mostrada en el perfil del usuario.
-        is_staff: Define si el usuario tiene acceso al panel de administración.
-        created_at: Fecha de creación del registro.
-        updated_at: Fecha de última actualización del registro.
-    """
-
     class Meta:
         model = CustomUser
         fields = '__all__'
@@ -75,22 +30,6 @@ class CustomUserAdminSerializer(serializers.ModelSerializer):
 
 
 class CustomUserCreateSerializer(serializers.ModelSerializer):
-    """
-    Serializer del modelo CustomUser para la creación de nuevos usuarios estándar.
-
-    Este serializer se encarga de transformar los datos de entrada JSON en instancias
-    del modelo CustomUser, gestionando específicamente el hasheo y almacenamiento
-    seguro de la contraseña del nuevo usuario.
-
-    Campos:
-        username (str): Nombre de usuario único.
-        email (str): Dirección de correo electrónico del usuario.
-        password (str): Contraseña del usuario (campo de solo escritura).
-        name (str): Nombre de pila del usuario.
-        surname (str): Primer apellido del usuario.
-        second_surname (str): Segundo apellido del usuario.
-        biography (str): Biografía mostrada en el perfil del usuario.
-    """
     password = serializers.CharField(write_only=True, required=True)
 
     class Meta:
@@ -124,13 +63,6 @@ class CustomUserCreateSerializer(serializers.ModelSerializer):
 
 
 class CustomUserLoginSerializer(serializers.Serializer):
-    """
-    Serializer para el proceso de inicio de sesión.
-
-    Este serializer maneja la validación de las credenciales de un usuario,
-    permitiendo el inicio de sesión tanto con el nombre de usuario como con el correo electrónico.
-    Verifica la contraseña hasheada y el estado de actividad del usuario.
-    """
     username = serializers.CharField()
     password = serializers.CharField(write_only=True)
 
@@ -151,14 +83,6 @@ class CustomUserLoginSerializer(serializers.Serializer):
 
 
 class CustomUserUpdateSerializer(serializers.ModelSerializer):
-    """
-    Serializer para la actualización de datos de un usuario estándar.
-
-    Este serializer se encarga de transformar los datos de entrada JSON en instancias
-    del modelo CustomUser, permitiendo la modificación de campos específicos por parte
-    del propio usuario o un proceso similar, incluyendo la actualización opcional de la contraseña.
-    """
-
     password = serializers.CharField(write_only=True, required=False)
 
     class Meta:
@@ -166,10 +90,6 @@ class CustomUserUpdateSerializer(serializers.ModelSerializer):
         fields = ['name', 'surname', 'second_surname', 'biography', 'password']
 
     def validate_password(self, value):
-        """
-        Valida la fortaleza de la contraseña usando los validadores configurados en Django settings.
-        Este metodo se ejecuta solo si se proporciona una nueva contraseña.>
-        """
         try:
             validate_password(value)
         except DjangoValidationError as e:
@@ -187,14 +107,6 @@ class CustomUserUpdateSerializer(serializers.ModelSerializer):
 
 
 class CustomUserAdminUpdateSerializer(serializers.ModelSerializer):
-    """
-    Serializer para la actualización de datos de cualquier usuario por parte de un usuario `is_staff`.
-
-    Este serializer se encarga de transformar los datos de entrada JSON en instancias
-    del modelo CustomUser, permitiendo a un administrador modificar la información de
-    cualquier usuario, incluyendo su estado de `is_staff` y la actualización opcional de la contraseña.
-    """
-
     password = serializers.CharField(write_only=True, required=False)
 
     class Meta:
@@ -206,10 +118,6 @@ class CustomUserAdminUpdateSerializer(serializers.ModelSerializer):
         read_only_fields = ['id']
 
     def update(self, instance, validated_data):
-        """
-        Válida la fortaleza de la contraseña usando los validadores configurados en Django settings.
-        Este metodo se ejecuta solo si se proporciona una nueva contraseña.
-        """
 
         password = validated_data.pop('password', None)
         for attr, value in validated_data.items():
@@ -221,11 +129,6 @@ class CustomUserAdminUpdateSerializer(serializers.ModelSerializer):
 
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
-    """
-    Serializer personalizado para la obtención de tokens JWT.
-    Extiende TokenObtainPairSerializer para añadir información adicional
-    del usuario (como is_staff y is_superuser) al payload del token de acceso.
-    """
     @classmethod
     def get_token(cls, user):
         """
