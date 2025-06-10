@@ -1,4 +1,3 @@
-# seed.py
 import os
 import django
 import datetime
