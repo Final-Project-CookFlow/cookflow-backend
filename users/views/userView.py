@@ -20,7 +20,6 @@ from ..serializers.favoriteSerializer import (
     FavoriteAdminSerializer
 )
 
-
 class UserRegistrationView(generics.CreateAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserCreateSerializer

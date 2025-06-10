@@ -3,7 +3,7 @@ from recipes.models.recipe import Recipe
 from recipes.models.category import Category
 from recipes.models.step import Step
 from recipes.serializers.stepSerializer import StepSerializer
-from users.serializers.userSerializer import UserSerializer
+from users.serializers.userSerializer import CustomUserSerializer
 
 class RecipeSerializer(serializers.ModelSerializer):
     user = CustomUserSerializer(read_only=True, source='user_id')

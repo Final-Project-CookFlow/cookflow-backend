@@ -63,23 +63,51 @@ class CustomUserCreateSerializer(serializers.ModelSerializer):
 
 
 class CustomUserLoginSerializer(serializers.Serializer):
-    username = serializers.CharField()
+    identifier = serializers.CharField()
     password = serializers.CharField(write_only=True)
 
     def validate(self, data):
-        user_input = data.get("username")
+        print("Backend: Entering CustomUserLoginSerializer validate method")
+        user_input = data.get("identifier")
         password = data.get("password")
 
-        user_obj = CustomUser.objects.filter(email=user_input).first() or CustomUser.objects.filter(
-            username=user_input).first()
+        print(f"Backend: Received identifier: '{user_input}'")
+        print(f"Backend: Received password (first 3 chars): '{password[:3]}***'") # Mask password for safety
 
-        if user_obj and user_obj.check_password(password):
-            if not user_obj.is_active:
-                raise serializers.ValidationError("Usuario inactivo.")
-            data["user"] = user_obj
-            return data
+        user_obj = None
 
-        raise serializers.ValidationError("Credenciales inválidas.")
+        # Try by email
+        user_obj_by_email = CustomUser.objects.filter(email=user_input).first()
+        print(f"Backend: User found by email: {user_obj_by_email is not None}")
+        if user_obj_by_email:
+            if user_obj_by_email.check_password(password):
+                user_obj = user_obj_by_email
+                print("Backend: Password matched for email user.")
+            else:
+                print("Backend: Password MISMATCH for email user.")
+
+        # If not found or password didn't match by email, try by username
+        if not user_obj:
+            user_obj_by_username = CustomUser.objects.filter(username=user_input).first()
+            print(f"Backend: User found by username: {user_obj_by_username is not None}")
+            if user_obj_by_username:
+                if user_obj_by_username.check_password(password):
+                    user_obj = user_obj_by_username
+                    print("Backend: Password matched for username user.")
+                else:
+                    print("Backend: Password MISMATCH for username user.")
+
+        if user_obj is None:
+            print("Backend: No user found or password mismatch after all attempts.")
+            raise serializers.ValidationError("Credenciales inválidas.")
+
+        if not user_obj.is_active:
+            print(f"Backend: User '{user_obj.username}' is inactive.")
+            raise serializers.ValidationError("Usuario inactivo.")
+
+        data["user"] = user_obj
+        print(f"Backend: Successfully authenticated user: {user_obj.username}")
+        return data
 
 
 class CustomUserUpdateSerializer(serializers.ModelSerializer):

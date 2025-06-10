@@ -23,7 +23,8 @@ INSTALLED_APPS = [
     'measurements',
     'media',
     'django_extensions',
-    'rest_framework_simplejwt.token_blacklist'
+    'rest_framework_simplejwt.token_blacklist',
+    'core'
 ]
 
 MIDDLEWARE = [
