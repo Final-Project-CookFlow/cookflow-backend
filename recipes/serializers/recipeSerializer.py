@@ -6,11 +6,12 @@ from recipes.serializers.stepSerializer import StepSerializer
 from users.serializers.userSerializer import UserSerializer
 
 class RecipeSerializer(serializers.ModelSerializer):
-    user_id = serializers.PrimaryKeyRelatedField(read_only=True)
+    user = CustomUserSerializer(read_only=True, source='user_id')
     categories = serializers.PrimaryKeyRelatedField(
         many=True, queryset=Category.objects.all()
     )
     steps = StepSerializer(many=True, read_only=True, source='step_set')
+
     class Meta:
         model = Recipe
         fields = [
@@ -25,12 +26,11 @@ class RecipeSerializer(serializers.ModelSerializer):
             'updated_at'
         ]
 
-        read_only_fields = ['id','user_id', 'updated_at']
+        read_only_fields = ['id','user', 'updated_at']
 
 
-class RecipeAdminSerializer(serializers.ModelSerializer)"
-    
-    user_id = serializers.PrimaryKeyRelatedField(read_only=True)
+class RecipeAdminSerializer(serializers.ModelSerializer):
+    user = CustomUserSerializer(read_only=True, source='user_id')
     categories = serializers.PrimaryKeyRelatedField(
         many=True, queryset=Category.objects.all()
     )

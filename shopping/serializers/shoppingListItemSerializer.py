@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from shopping.models.shoppingListItem import ShoppingListItem
-from measurements.serializers import UnitSerializer  # Import if you want nested unit data
+from measurements.serializers import UnitSerializer
 
 class ShoppingListItemSerializer(serializers.ModelSerializer):
     user_id = serializers.PrimaryKeyRelatedField(

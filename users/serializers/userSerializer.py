@@ -142,3 +142,13 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['is_staff'] = user.is_staff
         token['is_superuser'] = user.is_superuser
         return token
+
+class CustomUserFrontSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = CustomUser
+        fields = [
+            'id',
+            'username'
+        ]
+        read_only_fields = fields
