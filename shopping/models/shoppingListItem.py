@@ -6,13 +6,13 @@ class ShoppingListItem(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name='user_shopping_items'
+        related_name='user_shopping_items',
         db_column='user_id'
     )
     ingredient = models.ForeignKey(
         settings.AUTH_INGREDIENT_MODEL,
         on_delete=models.CASCADE,
-        related_name='ingredient_shopping_items'
+        related_name='ingredient_shopping_items',
         db_column='ingredient_id'
     )
     quantity_needed = models.IntegerField()
