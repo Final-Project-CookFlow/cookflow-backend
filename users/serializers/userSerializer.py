@@ -3,9 +3,11 @@ from ..models.user import CustomUser
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-
+from media.serializers import ImageSerializer # <--- IMPORT THE IMAGE SERIALIZER
 
 class CustomUserSerializer(serializers.ModelSerializer):
+    # Add profile_picture field, using the ImageSerializer
+    profile_picture = ImageSerializer(read_only=True) # <--- ADD THIS LINE
 
     class Meta:
         model = CustomUser
@@ -17,12 +19,17 @@ class CustomUserSerializer(serializers.ModelSerializer):
             'surname',
             'second_surname',
             'biography',
+            'profile_picture', # <--- ADD profile_picture TO FIELDS
             'created_at'
         ]
-        read_only_fields = fields
+        read_only_fields = fields # Keep fields read-only for this serializer
 
 
 class CustomUserAdminSerializer(serializers.ModelSerializer):
+    # If using '__all__', profile_picture will automatically be included.
+    # If you want to explicitly define it or customize, you can add:
+    profile_picture = ImageSerializer(read_only=True) # Or if writable, set to writable=True/required=False
+
     class Meta:
         model = CustomUser
         fields = '__all__'
@@ -116,6 +123,8 @@ class CustomUserUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = ['name', 'surname', 'second_surname', 'biography', 'password']
+        # If you want to allow updating profile picture via this serializer, add 'profile_picture' here.
+        # profile_picture = ImageSerializer(required=False, allow_null=True) # Example
 
     def validate_password(self, value):
         try:
@@ -169,14 +178,19 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['email'] = user.email
         token['is_staff'] = user.is_staff
         token['is_superuser'] = user.is_superuser
+        # You can add profile picture URL to the token if desired, but be mindful of token size
+        # token['profile_picture_url'] = user.profile_picture.url if user.profile_picture else None
         return token
 
 class CustomUserFrontSerializer(serializers.ModelSerializer):
+    # If you want to show profile picture in a 'front' view (e.g., list or basic profile)
+    profile_picture = ImageSerializer(read_only=True) # <--- ADD THIS LINE IF NEEDED HERE
 
     class Meta:
         model = CustomUser
         fields = [
             'id',
-            'username'
+            'username',
+            'profile_picture' # <--- ADD profile_picture TO FIELDS IF NEEDED HERE
         ]
         read_only_fields = fields

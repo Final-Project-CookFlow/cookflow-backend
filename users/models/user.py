@@ -1,5 +1,7 @@
+# users/models.py
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from media.models import Image # Import the Image model
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, username, email, password=None, **extra_fields):
@@ -29,8 +31,20 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     name = models.CharField(max_length=50, null=False)
     surname = models.CharField(max_length=50, null=False)
     second_surname = models.CharField(max_length=50, null=False)
-    biography = models.CharField(max_length=100, null=True, blank=True)
+    # Increased max_length for biography to match common use-cases and Faker output in seeding
+    biography = models.CharField(max_length=255, null=True, blank=True) 
+    
+    # --- ADD THIS LINE FOR PROFILE PICTURE ---
+    profile_picture = models.ForeignKey(
+        Image,
+        on_delete=models.SET_NULL, # If the Image metadata record is deleted, user remains
+        null=True,
+        blank=True,
+        related_name='user_profile_pictures' # Unique related_name for clarity
+    )
+    # ----------------------------------------
     is_staff = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True) # Ensure users are active by default
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

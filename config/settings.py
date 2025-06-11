@@ -1,7 +1,7 @@
 from datetime import timedelta
+import os
 from pathlib import Path
 
-BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-se*+7f6m+_anqy-ftqv$xuk^@+#1@n(-i+hziugch+=0oieb43'
 DEBUG = True
 ALLOWED_HOSTS = []
@@ -142,3 +142,7 @@ ARGON2_DEFAULTS = {
     'memory_cost': 4096,
     'parallelism': 2
 }
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

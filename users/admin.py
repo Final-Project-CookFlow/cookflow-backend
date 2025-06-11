@@ -1,3 +1,7 @@
+# users/admin.py
 from django.contrib import admin
+from .models import CustomUser
+from .models import Favorite
 
-# Register your models here.
+admin.site.register(CustomUser)
+admin.site.register(Favorite)

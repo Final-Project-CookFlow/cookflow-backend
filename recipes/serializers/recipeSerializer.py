@@ -1,16 +1,19 @@
+# recipes/serializers/recipeSerializer.py
 from rest_framework import serializers
-from recipes.models.recipe import Recipe
-from recipes.models.category import Category
-from recipes.models.step import Step
-from recipes.serializers.stepSerializer import StepSerializer
+from recipes.models import Recipe, Category, Step, RecipeIngredient
+from .stepSerializer import StepSerializer
+from .recipeIngredientSerializer import RecipeIngredientSerializer
 from users.serializers.userSerializer import CustomUserSerializer
+from media.serializers.imageSerializer import ImageSerializer
 
 class RecipeSerializer(serializers.ModelSerializer):
-    user = CustomUserSerializer(read_only=True, source='user_id')
+    user = CustomUserSerializer(read_only=True) 
     categories = serializers.PrimaryKeyRelatedField(
         many=True, queryset=Category.objects.all()
     )
-    steps = StepSerializer(many=True, read_only=True, source='step_set')
+    steps = StepSerializer(many=True, read_only=True)
+    recipe_ingredients = RecipeIngredientSerializer(many=True, read_only=True)
+    image_url = serializers.CharField(source='main_photo.url', read_only=True)
 
     class Meta:
         model = Recipe
@@ -21,20 +24,23 @@ class RecipeSerializer(serializers.ModelSerializer):
             'user',
             'duration_minutes',
             'commensals',
-            'categories', 
+            'categories',
             'steps',
-            'updated_at'
+            'recipe_ingredients',
+            'updated_at',
+            'image_url',
         ]
-
-        read_only_fields = ['id','user', 'updated_at']
-
+        read_only_fields = ['id', 'user', 'updated_at']
 
 class RecipeAdminSerializer(serializers.ModelSerializer):
-    user = CustomUserSerializer(read_only=True, source='user_id')
+    user = CustomUserSerializer(read_only=True)
     categories = serializers.PrimaryKeyRelatedField(
         many=True, queryset=Category.objects.all()
     )
-    steps = StepSerializer(many=True, read_only=True, source='step_set')
+    steps = StepSerializer(many=True, read_only=True)
+    recipe_ingredients = RecipeIngredientSerializer(many=True, read_only=True, source='recipeingredient_set') # Using the RecipeIngredientSerializer for nesting
+
+    image_url = serializers.CharField(source='main_photo.url', read_only=True)
 
     class Meta:
         model = Recipe

@@ -1,5 +1,7 @@
-from .stepSerializer import StepSerializer, StepAdminSerializer
-from .categorySerializer import CategorySerializer, CategoryAdminSerializer
-from .ingredientSerializer import IngredientSerializer, IngredientAdminSerializer
+# recipes/serializers/__init__.py
+
 from .recipeSerializer import RecipeSerializer, RecipeAdminSerializer
+from .stepSerializer import StepSerializer, StepAdminSerializer
+from .ingredientSerializer import IngredientSerializer, IngredientAdminSerializer
+from .categorySerializer import CategorySerializer, CategoryAdminSerializer
 from .recipeIngredientSerializer import RecipeIngredientSerializer, RecipeIngredientAdminSerializer
