@@ -1,3 +1,4 @@
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAdminUser
 from recipes.models import Category
@@ -14,6 +15,8 @@ class CategoryView(viewsets.ModelViewSet):
 
     Autor: Ana Castro
     """
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['parent_category_id']
 
     def get_queryset(self):
         """

@@ -6,6 +6,7 @@ Las vistas están diseñadas para ser utilizadas por administradores y permiten 
 Author:  
     {Angel Aragón}
 """
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
 from rest_framework.permissions import IsAdminUser, SAFE_METHODS
 from measurements.models.unit import Unit
@@ -18,11 +19,16 @@ class UnitViewSet(viewsets.ModelViewSet):
     Args:  
         - `viewsets (ModelViewSet)`: Clase base de Django REST Framework para manejar vistas basadas en conjuntos de datos.  
     Attributes:  
-        - `queryset (QuerySet)`: Conjunto de datos que contiene todas las unidades de medida.  
+        - `queryset (QuerySet)`: Conjunto de datos que contiene todas las unidades de medida.
+    filters:
+        - `filterset_fields (Filterset): Valor que contiene los campos por los que se puede filtrar.
     Returns:  
         - `UnitViewSet`: Un conjunto de vistas que permite realizar operaciones CRUD sobre el modelo Unit.   
     """
     queryset = Unit.objects.all()
+
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['unit_type']
 
     def get_serializer_class(self):
         """Determina qué clase de serializador usar según el método HTTP y los permisos del usuario.
