@@ -23,6 +23,7 @@ class Favorite(models.Model):
 
     class Meta:
         db_table = 'favorites'
+        unique_together = ('user_id', 'recipe_id')
 
     """
         Meta clase para definir metadatos del modelo Favorite.

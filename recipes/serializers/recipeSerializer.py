@@ -14,6 +14,14 @@ from media.serializers.image_serializer import ImageListSerializer
 
 import json
 
+class CategoryNestedSerializer(serializers.ModelSerializer):
+    """
+    Serializer para el modelo Category que devuelve solo el ID y el nombre.
+    Utilizado para serializadores anidados.
+    """
+    class Meta:
+        model = Category
+        fields = ['id', 'name'] # Queremos tanto el id como el nombre
 
 class RecipeSerializer(serializers.ModelSerializer):
     """
@@ -52,9 +60,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         """
 
     user = CustomUserFrontSerializer(read_only=True, source='user_id')
-    categories = serializers.PrimaryKeyRelatedField(
-        many=True, queryset=Category.objects.all()
-    )
+    categories = CategoryNestedSerializer(many=True, read_only=True)
     ingredients = RecipeIngredientSerializer(many=True, read_only=True, source='recipe_ingredients')
     steps = StepSerializer(many=True, read_only=True, source='step_set')
     image = serializers.SerializerMethodField()
@@ -86,9 +92,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         steps_data_str = self.context['request'].data.get('steps')
         ingredients_data_str = self.context['request'].data.get('ingredients')
 
-        # Extraer las categorías de validated_data
-        # Si categories no está en validated_data, se usará una lista vacía
-        categories_data = validated_data.pop('categories', []) # <--- ¡CAMBIO AQUÍ!
+        categories_data = validated_data.pop('categories', [])
 
         ingredients_data = []
         steps_data = []
@@ -105,12 +109,10 @@ class RecipeSerializer(serializers.ModelSerializer):
             except json.JSONDecodeError:
                 raise serializers.ValidationError({"steps": "Formato JSON de pasos inválido."})
 
-        # Crear la receta S-I-N categorías
-        recipe = Recipe.objects.create(**validated_data) # <--- AHORA validated_data NO contiene 'categories'
+        recipe = Recipe.objects.create(**validated_data)
 
-        # Asignar las categorías después de crear la receta
-        if categories_data: # Solo si hay categorías para asignar
-            recipe.categories.set(categories_data) # <--- ¡CAMBIO AQUÍ!
+        if categories_data:
+            recipe.categories.set(categories_data)
 
         for item in ingredients_data:
             try:
@@ -257,9 +259,7 @@ class RecipeAdminSerializer(serializers.ModelSerializer):
     """
 
     user = CustomUserFrontSerializer(read_only=True, source='user_id')
-    categories = serializers.PrimaryKeyRelatedField(
-        many=True, queryset=Category.objects.all()
-    )
+    categories = CategoryNestedSerializer(many=True, read_only=True)
     steps = StepSerializer(many=True, read_only=True, source='step_set')
     ingredients = RecipeIngredientSerializer(many=True, read_only=True, source='recipe_ingredients')
     image = serializers.SerializerMethodField()
@@ -285,8 +285,7 @@ class RecipeAdminSerializer(serializers.ModelSerializer):
         ingredients_data_str = self.context['request'].data.get('ingredients')
         steps_data_str = self.context['request'].data.get('steps')
 
-        # Extraer las categorías de validated_data
-        categories_data = validated_data.pop('categories', []) # <--- ¡CAMBIO AQUÍ!
+        categories_data = validated_data.pop('categories', [])
 
         ingredients_data = []
         steps_data = []
@@ -303,11 +302,9 @@ class RecipeAdminSerializer(serializers.ModelSerializer):
             except json.JSONDecodeError:
                 raise serializers.ValidationError({"steps": "Formato JSON de pasos inválido."})
 
-        # Crear la receta S-I-N categorías
         recipe = Recipe.objects.create(**validated_data)
 
-        # Asignar las categorías después de crear la receta
-        if categories_data: # Solo si hay categorías para asignar
+        if categories_data:
             recipe.categories.set(categories_data)
 
         for item in ingredients_data:
@@ -425,3 +422,27 @@ class RecipeAdminSerializer(serializers.ModelSerializer):
                     step_instance.delete()
 
         return instance
+
+class RandomRecipePublicSerializer(serializers.ModelSerializer):
+    """
+    Serializer para el modelo Recipe utilizado específicamente para las vistas
+    de recetas aleatorias públicas (no favoritas).
+    Expone solo los campos: id, name, description, duration_minutes, image.
+    """
+    image = serializers.SerializerMethodField()
+    categories = CategoryNestedSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Recipe
+        fields = [
+            'id',
+            'name',
+            'description',
+            'duration_minutes',
+            'image',
+            'categories',
+        ]
+
+    def get_image(self, obj):
+        image = Image.objects.filter(external_id=obj.id, type='RECIPE').first()
+        return ImageListSerializer(image).data.get('url') if image else None

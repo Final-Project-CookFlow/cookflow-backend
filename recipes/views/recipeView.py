@@ -6,8 +6,9 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework import filters
 from recipes.models.recipe import Recipe
-from recipes.serializers.recipeSerializer import RecipeSerializer, RecipeAdminSerializer
+from recipes.serializers.recipeSerializer import RecipeSerializer, RecipeAdminSerializer, RandomRecipePublicSerializer
 from media.services.image_service import update_image_for_instance
+from users.models import Favorite
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -57,27 +58,23 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'])
     def random(self, request):
-        """
-        Returns a specified number of random recipes by picking random IDs.
-        Query parameter 'count' (default: 5) to specify how many random recipes.
-        This method is more efficient than order_by('?') for large tables.
-        Filters (like user_id or current user) applied via get_queryset will work as expected.
-        """
+        user = request.user
         count = int(request.query_params.get('count', 5))
 
-        all_recipe_ids = list(self.get_queryset().values_list('id', flat=True))
+        favorited_recipe_ids = Favorite.objects.filter(user_id=user).values_list('recipe_id', flat=True)
+        available_recipes_qs = Recipe.objects.exclude(id__in=favorited_recipe_ids).prefetch_related('categories')
 
-        if not all_recipe_ids:
+        available_recipe_ids = list(available_recipes_qs.values_list('id', flat=True))
+
+        if not available_recipe_ids:
             return Response([])
 
-        if len(all_recipe_ids) <= count:
-            random_ids = all_recipe_ids
-        else:
-            random_ids = random.sample(all_recipe_ids, count)
+        num_to_select = min(count, len(available_recipe_ids))
+        random_ids = random.sample(available_recipe_ids, num_to_select)
 
-        random_recipes = self.get_queryset().filter(id__in=random_ids)
+        random_recipes = available_recipes_qs.filter(id__in=random_ids)
+        serializer = RandomRecipePublicSerializer(random_recipes, many=True)
 
-        serializer = self.get_serializer(random_recipes, many=True)
         return Response(serializer.data)
 
     def list(self, request, *args, **kwargs):
